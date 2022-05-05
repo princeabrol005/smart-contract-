@@ -1,0 +1,17 @@
+pragma solidity >=0.7.0 <0.9.0;
+
+contract first_num{
+    enum person{wait, allow , run }
+    person public p1 = person.wait;
+
+uint public prince = 1000;
+ string public text = 'show me';
+function fun() public returns(string memory) {
+    if ( p1==person.run){
+        prince=2000;
+    }
+    else{
+        return text;
+    }
+}
+}
