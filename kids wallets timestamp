@@ -1,0 +1,83 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.7.0 <0.9.0;
+
+
+    contract cryptokid {
+        address owner;
+        event LogkidfundingRecived(address addr , uint amount, uint contractBalance);
+
+    constructor()
+    {
+     owner=msg.sender;
+    }
+    //define kid
+    uint name ;
+    struct Kid{
+        address payable walletaddress;
+        string first_name;
+        string last_name;
+        uint realeastime;
+        uint amount;
+        bool canWidhraw;
+    }
+    Kid[] public kids;
+
+    modifier onlyOwner(){
+        require (msg.sender == owner, "only owner can add the kids" );
+        _;
+    }
+    //add kid function
+    
+    function Addkid(address payable walletaddress,string memory first_name,string memory last_name,uint realeastime,uint amount,bool canWidhraw) public onlyOwner {
+        kids.push(Kid(walletaddress,first_name,last_name,realeastime,amount,canWidhraw));
+    }
+
+    // deposit funds to contract of kids account
+    function deposit(address walletaddress) payable public {
+        addtokidsbalance(walletaddress);
+    }
+
+    function balanceof() public view returns(uint){
+        return address(this).balance;
+    }
+    // add ether to speacilly to the particular kid's account 
+    function addtokidsbalance(address walletaddress) private {
+            for(uint i = 0; i < kids.length; i++) {
+                if(kids[i].walletaddress == walletaddress) {
+                    kids[i].amount += msg.value;
+                    emit LogkidfundingRecived(walletaddress, msg.value,balanceof()); 
+                    
+                }
+            }
+        }
+    function getIndex(address walletaddress) view private returns(uint){
+        for(uint i=0; i<kids.length; i++){
+          if(kids[i].walletaddress == walletaddress) {
+              return i;
+          }
+          }
+          return 999;
+    }
+    function availabletowidthdraw(address walletaddress) public returns(bool){
+        uint i=getIndex(walletaddress);
+        require(block.timestamp > kids[i].realeastime, "you cannot widthdraw yet");
+        if (block.timestamp > kids[i].realeastime){
+            kids[i].canWidhraw=true;
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    // widthdraw money
+    function widthdraw(address payable walletaddress) payable public{
+        uint i = getIndex(walletaddress);
+        require (msg.sender==kids[i].walletaddress, "you must be the kid widthdraw");
+        require (kids[i].canWidhraw == true, "you cannot widthraw this time");
+        kids[i].walletaddress.transfer(kids[i].amount);
+    }
+
+
+}
